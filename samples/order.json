@@ -1,0 +1,1 @@
+{"order":{"id":"ORD-42","status":"open","customer":{"name":"John Doe","email":"john@example.com"},"items":[{"sku":"A-1","qty":2,"title":"Widget"},{"sku":"B-9","qty":1,"title":"Gadget"}]}}

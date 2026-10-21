@@ -1,0 +1,1 @@
+2026-10-21 08:15:03.441 INFO [http-nio-8080-exec-4] c.acme.OrderService - received payload=<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><GetOrder id="ORD-42"><Status>open</Status></GetOrder></soap:Body></soap:Envelope> durationMs=12
