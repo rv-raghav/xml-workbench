@@ -252,8 +252,8 @@ select {
 }
 
 .tab-add {
-  font-size: 16px;
-  min-width: 28px;
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 .split {

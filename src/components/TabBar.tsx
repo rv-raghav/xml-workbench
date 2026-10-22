@@ -86,11 +86,11 @@ export function TabBar() {
       <button
         type="button"
         className="tab-add"
-        aria-label="New tab"
-        title="New tab (Ctrl+T)"
+        aria-label="Add new tab"
+        title="Add new tab (Ctrl+T)"
         onClick={() => addTab(tabs.find((t) => t.id === activeTabId)?.type ?? 'xml')}
       >
-        +
+        Add new tab +
       </button>
     </div>
   );
