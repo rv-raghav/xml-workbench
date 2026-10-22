@@ -51,9 +51,10 @@ export const CodeEditor = forwardRef<ReactCodeMirrorRef, CodeEditorProps>(
       };
     }, [language]);
 
+    const editorTheme = dark ? vscodeDark : vscodeLight;
     const allExtensions = useMemo(
-      () => [SEARCH_EXT, ...extensions, ...langExt],
-      [extensions, langExt],
+      () => [SEARCH_EXT, editorTheme, ...extensions, ...langExt],
+      [editorTheme, extensions, langExt],
     );
 
     return (
@@ -61,7 +62,7 @@ export const CodeEditor = forwardRef<ReactCodeMirrorRef, CodeEditorProps>(
         ref={ref}
         value={value}
         height="100%"
-        theme={dark ? vscodeDark : vscodeLight}
+        theme="none"
         basicSetup={BASIC_SETUP}
         extensions={allExtensions}
         onChange={stableOnChange}

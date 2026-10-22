@@ -1,4 +1,4 @@
-export type TabType = 'xml' | 'json' | 'list';
+export type TabType = 'xml' | 'json' | 'list' | 'notepad';
 
 export type EditorViewMode = 'input' | 'formatted';
 

@@ -39,7 +39,7 @@ export default function App() {
       const { tabs, activeTabId, settings, applyFormat } =
         useWorkbenchStore.getState();
       const current = tabs.find((x) => x.id === activeTabId);
-      if (!current || current.tree || current.type === 'list') return;
+      if (!current || current.tree || current.type === 'list' || current.type === 'notepad') return;
       const source = current.formatted || current.raw;
       if (!source.trim() || source.length > AUTO_REBUILD_LIMIT) return;
       void import('./hooks/useFormat').then(({ formatAsync }) => {
@@ -61,13 +61,18 @@ export default function App() {
     document.documentElement.classList.toggle('light', settings.theme === 'light');
     document.documentElement.classList.toggle('dark', settings.theme === 'dark');
     document.documentElement.style.colorScheme = settings.theme;
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+    themeColor?.setAttribute(
+      'content',
+      settings.theme === 'light' ? '#ffffff' : '#1e1e1e',
+    );
   }, [settings.theme]);
 
   return (
     <div className="app">
       <TopBar />
       <TabBar />
-      {narrow && tab?.type !== 'list' && (
+      {narrow && tab && tab.type !== 'list' && tab.type !== 'notepad' && (
         <div className="mobile-tree-bar">
           <button type="button" onClick={() => setDrawer(true)}>
             Open tree
@@ -85,7 +90,7 @@ export default function App() {
           drawer={narrow}
           drawerOpen={drawerOpen}
           onDrawer={setDrawer}
-          hideSide={tab.type === 'list'}
+          hideSide={tab.type === 'list' || tab.type === 'notepad'}
           left={
             <Suspense fallback={<div className="loading">Loading editor…</div>}>
               <EditorPanel key={`${tab.id}-${tab.type}`} tab={tab} />

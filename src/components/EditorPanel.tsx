@@ -1,5 +1,5 @@
-import type { Extension } from '@codemirror/state';
-import { EditorView, placeholder } from '@codemirror/view';
+import type { Extension, StateCommand } from '@codemirror/state';
+import { EditorView, placeholder, type Command } from '@codemirror/view';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useFormat } from '../hooks/useFormat';
@@ -7,6 +7,8 @@ import { useWorkbenchStore } from '../store/useWorkbenchStore';
 import type { FormatOptions, TabState } from '../types';
 import { findNodeById, findNodeByOffset } from '../utils/xmlToTree';
 import { ErrorBar } from './ErrorBar';
+import { NotepadBar } from './NotepadBar';
+import { notepadKeymap } from '../utils/notepad';
 
 const CodeEditor = lazy(() =>
   import('./CodeEditor').then((m) => ({ default: m.CodeEditor })),
@@ -141,8 +143,9 @@ export function EditorPanel({ tab }: EditorPanelProps) {
           if (!settings.autoFormatOnPaste) return false;
           const text = event.clipboardData?.getData('text/plain');
           if (!text) return false;
-          event.preventDefault();
           const current = tabRef.current;
+          if (current.type === 'notepad') return false;
+          event.preventDefault();
           updateTab(current.id, { raw: text, editorView: 'input' });
           void runFormatRef.current(false, text);
           return true;
@@ -155,9 +158,12 @@ export function EditorPanel({ tab }: EditorPanelProps) {
           ? 'Paste XML here…'
           : tab.type === 'json'
             ? 'Paste JSON here…'
-            : 'Paste one value per line…',
+            : tab.type === 'notepad'
+              ? 'Paste any text. Alt+drag or Alt+Shift+arrows selects a column…'
+              : 'Paste one value per line…',
       ),
     );
+    if (tab.type === 'notepad') extra.push(notepadKeymap);
     extra.push(
       EditorView.updateListener.of((update) => {
         if (!update.selectionSet) return;
@@ -194,8 +200,32 @@ export function EditorPanel({ tab }: EditorPanelProps) {
     });
   };
 
+  const runNotepad = (command: Command | StateCommand) => {
+    const view = cmRef.current?.view;
+    if (!view) return;
+    command(view);
+    view.focus();
+  };
+
   return (
     <div className="editor-panel">
+      {tab.type === 'notepad' ? (
+        <NotepadBar
+          onRun={runNotepad}
+          onCopy={() => void copy(tab.raw, 'Note')}
+          onDownload={() => download(tab.raw)}
+          onClear={() =>
+            updateTab(tab.id, {
+              raw: '',
+              formatted: '',
+              minified: '',
+              error: null,
+              notices: [],
+              editorView: 'input',
+            })
+          }
+        />
+      ) : (
       <div className="toolbar">
         <div className="segmented" role="tablist" aria-label="Editor view">
           <button
@@ -299,6 +329,8 @@ export function EditorPanel({ tab }: EditorPanelProps) {
           </button>
         </div>
       </div>
+      )}
+      {tab.type !== 'notepad' && (
       <ErrorBar
         error={tab.error}
         notices={tab.notices}
@@ -307,6 +339,7 @@ export function EditorPanel({ tab }: EditorPanelProps) {
         onUnescape={() => void runFormat(true)}
         onGotoError={goToError}
       />
+      )}
       <div className="editor-host">
         {tab.isFormatting && (
           <div className="loading" role="status">

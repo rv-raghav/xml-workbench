@@ -61,11 +61,11 @@ body,
   margin: 0;
   height: 100%;
   width: 100%;
+  background: var(--bg);
+  color: var(--text);
 }
 
 body {
-  background: var(--bg);
-  color: var(--text);
   font-family: 'Segoe UI', system-ui, sans-serif;
   font-size: 13px;
 }
@@ -117,6 +117,8 @@ select {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .topbar,
@@ -237,6 +239,10 @@ select {
   color: var(--ok);
 }
 
+.badge-notepad {
+  color: var(--pi);
+}
+
 .tab-close {
   border: 0;
   background: transparent;
@@ -266,6 +272,7 @@ select {
 
 .pane-main {
   flex: 1;
+  background: var(--bg);
 }
 
 .pane-side {
@@ -329,6 +336,21 @@ select {
   margin-left: auto;
 }
 
+.notepad-bar {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.notepad-actions {
+  margin-left: 0;
+}
+
+.notepad-hint {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
 .status-stack {
   display: flex;
   flex-direction: column;
@@ -365,11 +387,27 @@ select {
   position: relative;
   display: flex;
   flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
 }
 
-.editor-host .cm-editor {
+.editor-host .cm-editor,
+.editor-host .cm-scroller {
   height: 100%;
   outline: none;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.editor-host .cm-gutters {
+  background: var(--bg-elev);
+  color: var(--text-dim);
+  border-right: 1px solid var(--border);
+}
+
+.editor-host .cm-activeLine,
+.editor-host .cm-activeLineGutter {
+  background: var(--bg-hover);
 }
 
 .loading {
@@ -378,7 +416,7 @@ select {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.35);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
   z-index: 2;
 }
 

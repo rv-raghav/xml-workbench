@@ -73,10 +73,19 @@ export function TopBar() {
           >
             List
           </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={tab.type === 'notepad'}
+            className={tab.type === 'notepad' ? 'on' : ''}
+            onClick={() => setTabType(tab.id, 'notepad')}
+          >
+            Notepad
+          </button>
         </div>
       )}
       <div className="topbar-actions">
-        {tab?.type !== 'list' && (
+        {(tab?.type === 'xml' || tab?.type === 'json') && (
           <button type="button" onClick={convert} disabled={!tab}>
             {tab?.type === 'json' ? 'Convert to XML' : 'Convert to JSON'}
           </button>

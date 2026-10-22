@@ -80,6 +80,13 @@ describe('tabs', () => {
     const backToXml = switchTabType(list, 'xml');
     expect(backToXml.raw).toBe('<order id="1"/>');
     expect(backToXml.type).toBe('xml');
+
+    const notepad = switchTabType(backToXml, 'notepad');
+    expect(notepad.raw).toBe('');
+    expect(notepad.type).toBe('notepad');
+    expect(switchTabType({ ...notepad, raw: 'alpha\nbeta' }, 'xml').raw).toBe(
+      '<order id="1"/>',
+    );
   });
 
   it('replace fills the target type without leaking into the previous draft', () => {

@@ -21,5 +21,17 @@ export function formatDocument(
   if (type === 'list') {
     return formatQuotedList(input);
   }
+  if (type === 'notepad') {
+    return {
+      formatted: input,
+      minified: input,
+      tree: null,
+      error: null,
+      notices: [],
+      canUnescape: false,
+      usedLenient: false,
+      extracted: false,
+    };
+  }
   return unescape ? unescapeAndFormatJson(input, options) : formatJson(input, options);
 }

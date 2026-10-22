@@ -80,7 +80,8 @@ export function createTab(
 export function defaultTabName(type: TabType): string {
   if (type === 'xml') return 'XML';
   if (type === 'json') return 'JSON';
-  return 'List';
+  if (type === 'list') return 'List';
+  return 'Notepad';
 }
 
 export function uniqueName(existing: string[], base: string): string {
