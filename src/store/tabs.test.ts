@@ -6,6 +6,7 @@ import {
   reorderTabs,
   serializeWorkbench,
   STORAGE_KEY,
+  switchTabType,
   tabHasContent,
 } from './tabs';
 import { DEFAULT_SETTINGS } from '../types';
@@ -61,5 +62,34 @@ describe('tabs', () => {
   it('treats whitespace-only tabs as empty', () => {
     const tab = createTab('xml', { raw: '  \n  ' });
     expect(tabHasContent(tab)).toBe(false);
+  });
+
+  it('keeps xml, json, and list drafts separate when switching type', () => {
+    const xml = createTab('xml', { raw: '<order id="1"/>', formatted: '<order id="1"/>' });
+    const json = switchTabType(xml, 'json');
+    expect(json.type).toBe('json');
+    expect(json.raw).toBe('');
+    expect(json.drafts.xml?.raw).toBe('<order id="1"/>');
+
+    const withJson = { ...json, raw: '{"a":1}', formatted: '{\n  "a": 1\n}' };
+    const list = switchTabType(withJson, 'list');
+    expect(list.raw).toBe('');
+    expect(list.drafts.json?.raw).toBe('{"a":1}');
+    expect(list.drafts.xml?.raw).toBe('<order id="1"/>');
+
+    const backToXml = switchTabType(list, 'xml');
+    expect(backToXml.raw).toBe('<order id="1"/>');
+    expect(backToXml.type).toBe('xml');
+  });
+
+  it('replace fills the target type without leaking into the previous draft', () => {
+    const xml = createTab('xml', { raw: '<root/>', formatted: '<root/>' });
+    const converted = switchTabType(xml, 'json', {
+      raw: '{"root":{}}',
+      formatted: '{\n  "root": {}\n}',
+    });
+    expect(converted.type).toBe('json');
+    expect(converted.raw).toBe('{"root":{}}');
+    expect(converted.drafts.xml?.raw).toBe('<root/>');
   });
 });

@@ -648,3 +648,23 @@ select {
 .context-menu button:hover {
   background: var(--bg-hover);
 }
+
+.cm-editor .cm-panel.cm-search {
+  background: var(--bg-elev);
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+.cm-editor .cm-panel.cm-search input {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.cm-editor .cm-searchMatch {
+  background-color: rgba(255, 213, 0, 0.28);
+}
+
+.cm-editor .cm-searchMatch-selected {
+  background-color: rgba(255, 128, 0, 0.45);
+}

@@ -88,12 +88,12 @@ export default function App() {
           hideSide={tab.type === 'list'}
           left={
             <Suspense fallback={<div className="loading">Loading editor…</div>}>
-              <EditorPanel key={tab.id} tab={tab} />
+              <EditorPanel key={`${tab.id}-${tab.type}`} tab={tab} />
             </Suspense>
           }
           right={
             <Suspense fallback={<div className="empty-hint">Loading tree…</div>}>
-              <TreePanel key={tab.id} tab={tab} />
+              <TreePanel key={`${tab.id}-${tab.type}`} tab={tab} />
             </Suspense>
           }
         />

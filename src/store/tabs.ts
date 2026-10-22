@@ -1,13 +1,7 @@
-import type { TabState, TabType } from '../types';
+import type { TabContent, TabState, TabType } from '../types';
 
-export function createTab(
-  type: TabType = 'xml',
-  partial?: Partial<TabState>,
-): TabState {
-  const n = partial?.name;
+export function emptyTabContent(): TabContent {
   return {
-    id: partial?.id ?? crypto.randomUUID(),
-    name: n && n.trim() ? n : defaultTabName(type),
     raw: '',
     formatted: '',
     minified: '',
@@ -18,12 +12,66 @@ export function createTab(
     tree: null,
     treeExpandedIds: [],
     searchQuery: '',
-    createdAt: Date.now(),
     editorView: 'input',
     selectedNodeId: null,
     isFormatting: false,
     cursorOffset: 0,
     scrollTop: 0,
+  };
+}
+
+export function snapshotTabContent(tab: TabContent): TabContent {
+  const content = emptyTabContent();
+  content.raw = tab.raw;
+  content.formatted = tab.formatted;
+  content.minified = tab.minified;
+  content.error = tab.error;
+  content.notices = tab.notices;
+  content.canUnescape = tab.canUnescape;
+  content.usedLenient = tab.usedLenient;
+  content.tree = tab.tree;
+  content.treeExpandedIds = tab.treeExpandedIds;
+  content.searchQuery = tab.searchQuery;
+  content.editorView = tab.editorView;
+  content.selectedNodeId = tab.selectedNodeId;
+  content.isFormatting = false;
+  content.cursorOffset = tab.cursorOffset;
+  content.scrollTop = tab.scrollTop;
+  return content;
+}
+
+export function switchTabType(
+  tab: TabState,
+  nextType: TabType,
+  replace?: Partial<TabContent>,
+): TabState {
+  if (tab.type === nextType && !replace) return tab;
+  const drafts: TabState['drafts'] = {
+    ...tab.drafts,
+    [tab.type]: snapshotTabContent(tab),
+  };
+  const restored = replace
+    ? { ...emptyTabContent(), ...replace }
+    : (drafts[nextType] ?? emptyTabContent());
+  return {
+    ...tab,
+    ...restored,
+    drafts,
+    type: nextType,
+  };
+}
+
+export function createTab(
+  type: TabType = 'xml',
+  partial?: Partial<TabState>,
+): TabState {
+  const n = partial?.name;
+  return {
+    id: partial?.id ?? crypto.randomUUID(),
+    name: n && n.trim() ? n : defaultTabName(type),
+    ...emptyTabContent(),
+    createdAt: Date.now(),
+    drafts: {},
     ...partial,
     type,
   };
@@ -58,8 +106,15 @@ export function reorderTabs<T>(items: T[], from: number, to: number): T[] {
   return next;
 }
 
+function contentHasText(content: TabContent): boolean {
+  return Boolean(content.raw.trim() || content.formatted.trim());
+}
+
 export function tabHasContent(tab: TabState): boolean {
-  return Boolean(tab.raw.trim() || tab.formatted.trim());
+  if (contentHasText(tab)) return true;
+  return Object.values(tab.drafts ?? {}).some(
+    (draft) => draft && contentHasText(draft),
+  );
 }
 
 export function applyRename(
@@ -96,6 +151,21 @@ export function serializeWorkbench(state: PersistedWorkbench): string {
       minified: capText(t.minified),
       isFormatting: false,
       tree: null,
+      drafts: Object.fromEntries(
+        Object.entries(t.drafts ?? {}).map(([key, draft]) => [
+          key,
+          draft
+            ? {
+                ...draft,
+                raw: capText(draft.raw),
+                formatted: capText(draft.formatted),
+                minified: capText(draft.minified),
+                tree: null,
+                isFormatting: false,
+              }
+            : draft,
+        ]),
+      ),
     })),
     activeTabId: state.activeTabId,
     settings: state.settings,
@@ -111,6 +181,7 @@ export function loadWorkbench(raw: string | null): PersistedWorkbench | null {
       ...data,
       tabs: data.tabs.map((t) => ({
         ...t,
+        drafts: t.drafts ?? {},
         tree: null,
         isFormatting: false,
       })),

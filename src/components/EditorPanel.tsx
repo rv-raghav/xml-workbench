@@ -1,7 +1,7 @@
 import type { Extension } from '@codemirror/state';
 import { EditorView, placeholder } from '@codemirror/view';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
-import { lazy, Suspense, useEffect, useMemo, useRef } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useFormat } from '../hooks/useFormat';
 import { useWorkbenchStore } from '../store/useWorkbenchStore';
 import type { FormatOptions, TabState } from '../types';
@@ -24,6 +24,7 @@ export function EditorPanel({ tab }: EditorPanelProps) {
   const { formatAsync } = useFormat();
   const cmRef = useRef<ReactCodeMirrorRef>(null);
   const tabRef = useRef(tab);
+  const skipTreeRevealRef = useRef(false);
   const runFormatRef = useRef<(unescape?: boolean, fromPaste?: string) => void>(
     () => undefined,
   );
@@ -60,6 +61,15 @@ export function EditorPanel({ tab }: EditorPanelProps) {
     runFormatRef.current = runFormat;
   });
 
+  const onEditorChange = useCallback(
+    (next: string) => {
+      const current = tabRef.current;
+      if (current.editorView === 'input') updateTab(current.id, { raw: next });
+      else updateTab(current.id, { formatted: next, raw: next });
+    },
+    [updateTab],
+  );
+
   const copy = async (text: string, label: string) => {
     await navigator.clipboard.writeText(text);
     toast('success', `${label} copied`);
@@ -87,6 +97,10 @@ export function EditorPanel({ tab }: EditorPanelProps) {
   const selected = findNodeById(tab.tree, tab.selectedNodeId ?? '');
 
   useEffect(() => {
+    if (skipTreeRevealRef.current) {
+      skipTreeRevealRef.current = false;
+      return;
+    }
     if (tab.editorView !== 'formatted' || !selected) return;
     const view = cmRef.current?.view;
     if (!view) return;
@@ -94,6 +108,8 @@ export function EditorPanel({ tab }: EditorPanelProps) {
     if (len === 0) return;
     const anchor = Math.max(0, Math.min(selected.start, len));
     const head = Math.max(0, Math.min(selected.end, len));
+    const main = view.state.selection.main;
+    if (main.from === anchor && main.to === head) return;
     try {
       view.dispatch({
         selection: { anchor, head },
@@ -150,6 +166,7 @@ export function EditorPanel({ tab }: EditorPanelProps) {
         const pos = update.state.selection.main.head;
         const node = findNodeByOffset(current.tree, pos);
         if (node && node.id !== current.selectedNodeId) {
+          skipTreeRevealRef.current = true;
           updateTab(current.id, { selectedNodeId: node.id, cursorOffset: pos });
         }
       }),
@@ -303,10 +320,7 @@ export function EditorPanel({ tab }: EditorPanelProps) {
             dark={settings.theme === 'dark'}
             language={tab.type}
             extensions={extensions}
-            onChange={(next) => {
-              if (tab.editorView === 'input') updateTab(tab.id, { raw: next });
-              else updateTab(tab.id, { formatted: next, raw: next });
-            }}
+            onChange={onEditorChange}
           />
         </Suspense>
       </div>

@@ -3,6 +3,7 @@ import {
   DEFAULT_SETTINGS,
   type FormatResult,
   type SettingsState,
+  type TabContent,
   type TabState,
   type TabType,
   type ToastItem,
@@ -16,6 +17,7 @@ import {
   reorderTabs,
   serializeWorkbench,
   STORAGE_KEY,
+  switchTabType,
   tabHasContent,
   uniqueName,
 } from './tabs';
@@ -41,7 +43,7 @@ interface WorkbenchStore {
   switchRelative: (delta: number) => void;
   updateTab: (id: string, patch: Partial<TabState>) => void;
   applyFormat: (id: string, result: FormatResult, switchToFormatted?: boolean) => void;
-  setTabType: (id: string, type: TabType) => void;
+  setTabType: (id: string, type: TabType, replace?: Partial<TabContent>) => void;
   clearAllTabs: () => void;
   patchSettings: (patch: Partial<SettingsState>) => void;
   toast: (kind: ToastItem['kind'], message: string) => void;
@@ -61,6 +63,7 @@ function initialState(): Pick<WorkbenchStore, 'tabs' | 'activeTabId' | 'settings
     };
     const tabs = loaded.tabs.map((t) => ({
       ...t,
+      drafts: t.drafts ?? {},
       isFormatting: false,
     }));
     const activeTabId =
@@ -155,17 +158,11 @@ export const useWorkbenchStore = create<WorkbenchStore>((set, get) => ({
     });
   },
 
-  setTabType: (id, type) => {
+  setTabType: (id, type, replace) => {
     const tab = get().tabs.find((t) => t.id === id);
     if (!tab) return;
-    get().updateTab(id, {
-      type,
-      error: null,
-      notices: [],
-      tree: null,
-      formatted: tab.raw,
-      minified: '',
-      editorView: 'input',
+    set({
+      tabs: get().tabs.map((t) => (t.id === id ? switchTabType(t, type, replace) : t)),
     });
   },
 

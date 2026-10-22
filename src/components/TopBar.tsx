@@ -6,7 +6,6 @@ export function TopBar() {
   const patchSettings = useWorkbenchStore((s) => s.patchSettings);
   const setTabType = useWorkbenchStore((s) => s.setTabType);
   const applyFormat = useWorkbenchStore((s) => s.applyFormat);
-  const updateTab = useWorkbenchStore((s) => s.updateTab);
   const toast = useWorkbenchStore((s) => s.toast);
   const setSettingsOpen = useWorkbenchStore((s) => s.setSettingsOpen);
 
@@ -24,12 +23,12 @@ export function TopBar() {
         );
         if (tab.type === 'xml') {
           const result = convertXmlTabToJson(tab.formatted || tab.raw, options);
-          updateTab(tab.id, { type: 'json', raw: result.formatted });
+          setTabType(tab.id, 'json', { raw: result.formatted });
           applyFormat(tab.id, result);
           toast('success', 'Converted XML to JSON');
         } else {
           const result = convertJsonTabToXml(tab.formatted || tab.raw, options);
-          updateTab(tab.id, { type: 'xml', raw: result.formatted });
+          setTabType(tab.id, 'xml', { raw: result.formatted });
           applyFormat(tab.id, result);
           toast('success', 'Converted JSON to XML');
         }

@@ -67,10 +67,7 @@ export interface FormatOptions {
   sortKeys?: boolean;
 }
 
-export interface TabState {
-  id: string;
-  name: string;
-  type: TabType;
+export interface TabContent {
   raw: string;
   formatted: string;
   minified: string;
@@ -81,12 +78,19 @@ export interface TabState {
   tree: AppTreeNode | null;
   treeExpandedIds: string[];
   searchQuery: string;
-  createdAt: number;
   editorView: EditorViewMode;
   selectedNodeId: string | null;
   isFormatting: boolean;
   cursorOffset: number;
   scrollTop: number;
+}
+
+export interface TabState extends TabContent {
+  id: string;
+  name: string;
+  type: TabType;
+  createdAt: number;
+  drafts: Partial<Record<TabType, TabContent>>;
 }
 
 export interface SettingsState {
