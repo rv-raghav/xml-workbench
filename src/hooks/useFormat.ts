@@ -38,6 +38,12 @@ function getWorker(): Worker | null {
 
 const WORKER_THRESHOLD = 256 * 1024;
 
+/** XML parsing needs DOMParser, which background workers do not have. */
+export function usesFormatWorker(type: TabType, length: number): boolean {
+  if (type === 'xml') return false;
+  return length >= WORKER_THRESHOLD;
+}
+
 export async function formatAsync(
   type: TabType,
   input: string,
@@ -45,7 +51,10 @@ export async function formatAsync(
   unescape = false,
 ): Promise<FormatResult> {
   const { formatDocument } = await import('../utils/formatDocument');
-  if (input.length < WORKER_THRESHOLD) {
+  if (!usesFormatWorker(type, input.length)) {
+    if (input.length >= WORKER_THRESHOLD) {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
     return formatDocument(type, input, options, unescape);
   }
   const w = getWorker();
